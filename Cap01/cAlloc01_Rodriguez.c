@@ -30,7 +30,7 @@ int main(int argc, char *argv[]){
     // Se imprime cada valor asignado en p1, se imprimira 0 ya que la memoria resevada se inicia en 0
     printf("El valor de p1 en %d es: %d \n\n", i,*(p1 + i));
 
-  // Se recorre el bloque de p2 y se asignan valores secuenciales del 1 al 10
+  // Se recorre el bloque de p2 y se asignan valores secuenciales del 0 al 9
   for (int i = 0; i < 10; i++){
     *(p2 + i) = i;
     // Se imprime cada valor asignado en p2
