@@ -30,13 +30,14 @@ int main(int argc, char *argv[]){
     return 1;
   }
   
-  // Se asignan valores a las primeras 5 posiciones del bloque de memoria
+  // Se asignan valores a las primeras 5 posiciones del bloque de memoria de 1 a 5
   for (int i = 0; i < 5; i++){
     arreglo[i] = i + 1;
-    printf("arreglo[%d] = %d\n", i, arreglo[i]);
+    //Se imprimen los valores del arreglo en i
+    printf("Valor del arreglo[%d] = %d\n", i, arreglo[i]);
   }
   
-  // Se redimensiona el bloque de memoria para que tenga 15 enteros
+  // Se redimensiona el bloque de memoria para que tenga 15 enteros, o sea 10 enteros mas
   arreglo = realloc(arreglo, 15 * sizeof(int));
   
   // Se verifica que la memoria se haya redimensionado correctamente
