@@ -28,7 +28,8 @@ int main(int argc, char *argv[]){
   if (arreglo == NULL) {
     printf("Error al reservar memoria.\n");
     return 1;
-  }
+  }else
+    printf("Se asigno la memoria al arreglo\n\n);
   
   // Se asignan valores a las primeras 5 posiciones del bloque de memoria de 1 a 5
   for (int i = 0; i < 5; i++){
@@ -44,12 +45,13 @@ int main(int argc, char *argv[]){
   if (arreglo == NULL) {
     printf("Error al redimensionar memoria.\n");
     return 1;
-  }
+  }else
+    printf("\nSe redimensiono la memoria del arreglo\n\n);
   
   // Se asignan valores a las nuevas posiciones del bloque de memoria
   for (int i = 5; i < 15; i++){
     arreglo[i] = (i + 1) * 2;
-    printf("arreglo[%d] = %d\n", i, arreglo[i]);
+     printf("Valor del arreglo[%d] = %d\n", i, arreglo[i]);
   }
   
   // Se libera la memoria redimensionada
