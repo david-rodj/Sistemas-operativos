@@ -14,8 +14,44 @@ Topico: Comunicacion bidireccional
 #include <string.h>
 #define FIFO_FILE "/tmp/fifo_twoway"
 
-void invertir_cadena(char *);
+/**
+ * Invierte una cadena de caracteres.
+ * 
+ * Esta función toma una cadena de caracteres como parámetro y la invierte.
+ * 
+ * Ejemplo:
+ * char cadena[] = "hola";
+ * invertir_cadena(cadena);
+ * printf("%s\n", cadena); // Imprime "aloh"
+ * 
+ * @param cadena La cadena de caracteres a invertir.
+ */
+void invertir_cadena(char *cadena) {
+    int ultimo, limite, primero;
+    char temporal;
+    ultimo = strlen(cadena) - 1;
+    limite = ultimo/2;
+    primero = 0;
 
+    while (primero < ultimo) {
+        temporal = cadena[primero];
+        cadena[primero] = cadena[ultimo];
+        cadena[ultimo] = temporal;
+        primero++;
+        ultimo--;
+    }
+    return;
+}
+
+/**
+ * Programa principal del servidor FIFO.
+ * 
+ * Este programa crea un FIFO y se queda esperando a que se escriba en él.
+ * Cuando se escribe en el FIFO, se lee la cadena, se invierte y se escribe de vuelta en el FIFO.
+ * El programa se detiene cuando se escribe la cadena "fin" en el FIFO.
+ * 
+ * @return 0 si el programa se ejecuta correctamente.
+ */
 int main() {
     int descriptor_archivo;
     char buffer_leido[80];
@@ -47,21 +83,4 @@ int main() {
         sleep(1);
     }
     return 0;
-}
-
-void invertir_cadena(char *cadena) {
-    int ultimo, limite, primero;
-    char temporal;
-    ultimo = strlen(cadena) - 1;
-    limite = ultimo/2;
-    primero = 0;
-
-    while (primero < ultimo) {
-        temporal = cadena[primero];
-        cadena[primero] = cadena[ultimo];
-        cadena[ultimo] = temporal;
-        primero++;
-        ultimo--;
-    }
-    return;
 }
