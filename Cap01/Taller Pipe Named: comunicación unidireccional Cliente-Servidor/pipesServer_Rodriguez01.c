@@ -6,7 +6,7 @@ Tema: Pipe named o FIFO o tuberia
 Topico: Comunicacion unidireccional
 ***********************************************************/
 
-include <stdio.h>
+#include <stdio.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
