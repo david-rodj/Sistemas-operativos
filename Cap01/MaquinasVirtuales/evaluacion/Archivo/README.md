@@ -20,7 +20,7 @@ Para compilar este proyecto recomiendo `g++`, así que lo tendremos que instalar
 Para compilar el proyecto, abriras la consola de tu preferencia, digitaras el siguiente comando remplazando los parametros segun tu necesidad:
 
 ```bash
-g++ [nombre del fichero(s) a compilar (.cpp y .cxx)] -o [nombre del ejecutable]
+g++ [nombre del fichero(s) a compilar (.c, .cpp y .cxx)] -o [nombre del ejecutable]
 ```
 
 ## Ejecución
