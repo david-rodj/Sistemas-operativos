@@ -1,13 +1,13 @@
 /**************************************************************
-		Pontificia Universidad Javeriana
-	Autor: J. Corredor
-	Fecha: Febrero 2024
-	Materia: Sistemas Operativos
-	Tema: Taller de Evaluación de Rendimiento
-	Fichero: fuente de multiplicación de matrices NxN por hilos.
-	Objetivo: Evaluar el tiempo de ejecución del 
-		      algoritmo clásico de multiplicación de matrices.
-			  Se implementa con la Biblioteca POSIX Pthreads
+Pontificia Universidad Javeriana
+Autor: David Rodriguez
+Fecha: Octubre 2024
+Materia: Sistemas Operativos
+Tema: Taller de Evaluación de Rendimiento
+Fichero: fuente de multiplicación de matrices NxN por hilos.
+Objetivo: Evaluar el tiempo de ejecución del 
+	  algoritmo transpuesta de multiplicación de matrices.
+	  Se implementa con la Biblioteca POSIX Pthreads
 ****************************************************************/
 
 #include <stdio.h>
@@ -19,112 +19,96 @@
 
 #define DATA_SIZE (1024*1024*64*3) 
 
-pthread_mutex_t MM_mutex;
-static double MEM_CHUNK[DATA_SIZE];
-double *mA, *mB, *mC;
+pthread_mutex_t MM_mutex; // Mutex para sincronización de hilos
+static double MEM_CHUNK[DATA_SIZE]; // Chunk de memoria para las matrices
+double *mA, *mB, *mC; // Punteros a las matrices A, B y C
 
-struct parametros{
-	int nH;
-	int idH;
-	int N;
+/**
+ * @brief Estructura para pasar parámetros a los hilos.
+ *
+ * Esta estructura contiene la información necesaria para que cada hilo
+ * realice su parte de la multiplicación de matrices.
+ */
+struct parametros {
+	int nH; // Número total de hilos
+	int idH; // ID del hilo actual
+	int N; // Tamaño de la matriz
 };
 
-struct timeval start, stop;
+struct timeval start, stop; // Estructuras para medir el tiempo de ejecución
 
-void llenar_matriz(int SZ){ 
-	srand48(time(NULL));
-	for(int i = 0; i < SZ*SZ; i++){
-			mA[i] = 1.1*i; //drand48(); 
-			mB[i] = 2.2*i; //drand48();
-			mC[i] = 0; 
+/**
+ * @brief Llena las matrices A y B con valores predefinidos.
+ *
+ * Esta función inicializa las matrices A y B con valores 
+ * secuenciales y establece la matriz C en cero.
+ *
+ * @param SZ Tamaño de la matriz (número de filas/columnas).
+ */
+void llenar_matriz(int SZ) { 
+	srand48(time(NULL)); // Inicializa la semilla para la generación aleatoria
+	for(int i = 0; i < SZ * SZ; i++) {
+		mA[i] = 1.1 * i; // Asigna valores a la matriz A
+		mB[i] = 2.2 * i; // Asigna valores a la matriz B
+		mC[i] = 0; // Inicializa la matriz C en cero
+	}	
+}
+
+/**
+ * @brief Imprime una matriz en la consola.
+ *
+ * Esta función imprime la matriz en un formato legible si su 
+ * tamaño es menor a 12. De lo contrario, solo imprime un separador.
+ *
+ * @param sz Tamaño de la matriz (número de filas/columnas).
+ * @param matriz Puntero a la matriz que se desea imprimir.
+ */
+void print_matrix(int sz, double *matriz) {
+	if(sz < 12) {
+		for(int i = 0; i < sz * sz; i++) {
+			if(i % sz == 0) printf("\n");
+			printf(" %.3f ", matriz[i]); // Imprime el valor de la matriz con 3 decimales
 		}	
-}
-
-void print_matrix(int sz, double *matriz){
-	if(sz < 12){
-    		for(int i = 0; i < sz*sz; i++){
-     				if(i%sz==0) printf("\n");
-            		printf(" %.3f ", matriz[i]);
-			}	
-    	printf("\n>-------------------->\n");
 	}
+    printf("\n>-------------------->\n"); // Separador
 }
 
-void inicial_tiempo(){
-	gettimeofday(&start, NULL);
+/**
+ * @brief Inicia el conteo del tiempo.
+ *
+ * Esta función captura el tiempo actual y lo almacena en la variable 
+ * 'start' para su posterior uso en la medición del tiempo de ejecución.
+ */
+void inicial_tiempo() {
+	gettimeofday(&start, NULL); // Captura el tiempo actual
 }
 
-void final_tiempo(){
-	gettimeofday(&stop, NULL);
-	stop.tv_sec -= start.tv_sec;
-	printf("\n:-> %9.0f µs\n", (double) (stop.tv_sec*1000000 + stop.tv_usec));
+/**
+ * @brief Finaliza el conteo del tiempo y muestra el resultado.
+ *
+ * Esta función captura el tiempo final y calcula la diferencia con 
+ * respecto al tiempo inicial, mostrando el tiempo de ejecución en 
+ * microsegundos.
+ */
+void final_tiempo() {
+	gettimeofday(&stop, NULL); // Captura el tiempo final
+	stop.tv_sec -= start.tv_sec; // Calcula la diferencia de segundos
+	printf("\n:-> %9.0f µs\n", (double) (stop.tv_sec * 1000000 + stop.tv_usec)); // Muestra el tiempo en microsegundos
 }
 
-void *mult_thread(void *variables){
-	struct parametros *data = (struct parametros *)variables;
+/**
+ * @brief Función que ejecuta la multiplicación de matrices en hilos.
+ *
+ * Esta función es ejecutada por cada hilo y realiza la multiplicación 
+ * de matrices dividiendo el trabajo entre los hilos.
+ *
+ * @param variables Puntero a una estructura de parámetros que contiene 
+ *                  información sobre el hilo y el tamaño de la matriz.
+ * @return NULL
+ */
+void *mult_thread(void *variables) {
+	struct parametros *data = (struct parametros *)variables; // Cast a la estructura de parámetros
 	
-	int idH = data->idH;
-	int nH  = data->nH;
-	int N   = data->N;
-	int ini = (N/nH)*idH;
-	int fin = (N/nH)*(idH+1);
-
-    for (int i = ini; i < fin; i++){
-        for (int j = 0; j < N; j++){
-			double *pA, *pB, sumaTemp = 0.0;
-			pA = mA + (i*N); 
-			pB = mB + (j*N);
-            for (int k = 0; k < N; k++, pA++, pB++){
-				sumaTemp += (*pA * *pB);
-			}
-			mC[i*N+j] = sumaTemp;
-		}
-	}
-
-	pthread_mutex_lock (&MM_mutex);
-	pthread_mutex_unlock (&MM_mutex);
-	pthread_exit(NULL);
-}
-
-int main(int argc, char *argv[]){
-	if (argc < 2){
-		printf("Ingreso de argumentos \n $./ejecutable tamMatriz numHilos\n");
-		return -1;	
-	}
-    int SZ = atoi(argv[1]); 
-    int n_threads = atoi(argv[2]); 
-
-    pthread_t p[n_threads];
-    pthread_attr_t atrMM;
-
-	mA = MEM_CHUNK;
-	mB = mA + SZ*SZ;
-	mC = mB + SZ*SZ;
-
-	llenar_matriz(SZ);
-	print_matrix(SZ, mA);
-	print_matrix(SZ, mB);
-
-	inicial_tiempo();
-	pthread_mutex_init(&MM_mutex, NULL);
-	pthread_attr_init(&atrMM);
-	pthread_attr_setdetachstate(&atrMM, PTHREAD_CREATE_JOINABLE);
-
-    for (int j=0; j<n_threads; j++){
-		struct parametros *datos = (struct parametros *) malloc(sizeof(struct parametros)); 
-		datos->idH = j;
-		datos->nH  = n_threads;
-		datos->N   = SZ;
-        pthread_create(&p[j],&atrMM,mult_thread,(void *)datos);
-	}
-
-    for (int j=0; j<n_threads; j++)
-        pthread_join(p[j],NULL);
-	final_tiempo();
-	
-	print_matrix(SZ, mC);
-
-	pthread_attr_destroy(&atrMM);
-	pthread_mutex_destroy(&MM_mutex);
-	pthread_exit (NULL);
-}
+	int idH = data->idH; // ID del hilo
+	int nH  = data->nH; // Número total de hilos
+	int N   = data->N; // Tamaño
